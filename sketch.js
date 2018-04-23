@@ -10,7 +10,7 @@ var param_input;
 var param_inputtext = "";
 var numLines_input;
 var numLines_inputtext = "";
-var adjust = 0
+var adjust = 3
 
 function setup() {
   var canvas = createCanvas(500,600);
@@ -104,7 +104,14 @@ function update()
 		}
 		catch(error){}
 	}
-	var dt = (tmax - tmin)/numLines;
+	if(numLines != 1)
+	{
+		var dt = (tmax - tmin)/(numLines-1);
+	}
+	else
+	{
+		var dt = (tmax - tmin) * 2
+	}
 	var t = tmin;
 	prevx1 = null
 	prevxi = null
@@ -219,6 +226,8 @@ function update()
 		} catch(error) {}
 		t += dt;
 	}
+	
+	dt = (tmax - tmin)/100
 	
 	func_inputtext = func_input.value().replace(/x/g,'t')
 	if(isValidExpression(func_inputtext))
