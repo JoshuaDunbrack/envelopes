@@ -285,5 +285,5 @@ function isValidPoint(point) {
 }
 
 function isValidExpression(expr) {
-	return (!(/[a-z]/i.test(expr.replace('sqrt','1').replace('t','1').replace('L','1').replace(',','a'))) && expr.length > 0);
+	return (!(/[a-z]/i.test(expr.replace(/sqrt/g,'1').replace(/t/g,'1').replace(/L/g,'1').replace(',','a'))) && expr.length > 0);
 }
