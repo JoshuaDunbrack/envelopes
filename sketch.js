@@ -220,7 +220,7 @@ function update()
 		t += dt;
 	}
 	
-	func_inputtext = func_input.value()
+	func_inputtext = func_input.value().replace(/x/g,'t')
 	if(isValidExpression(func_inputtext))
 	{
 		t = tmin
@@ -285,5 +285,5 @@ function isValidPoint(point) {
 }
 
 function isValidExpression(expr) {
-	return (!(/[a-z]/i.test(expr.replace(/sqrt/g,'1').replace(/t/g,'1').replace(/L/g,'1').replace(',','a'))) && expr.length > 0);
+	return (!(/[a-z]/i.test(expr.replace(/sqrt/g,'1').replace(/t/g,'1').replace(/L/g,'1').replace(/x/g,'1').replace(',','a'))) && expr.length > 0);
 }
