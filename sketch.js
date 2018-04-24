@@ -11,6 +11,7 @@ var param_inputtext = "";
 var numLines_input;
 var numLines_inputtext = "";
 var adjust = 3
+var expressions = [];
 
 function setup() {
   var canvas = createCanvas(500,600);
@@ -48,6 +49,14 @@ function setup() {
 
 function draw() {
   //check if text is new and valid
+  if(param_inputtext != param_input.value())
+  {
+	  expressions = param_input.value().split(',');
+	  for(i = 0; i < expressions.length; i++)
+	  {
+		  expressions[i] = expressions[i].split('=');
+	  }
+  }
   if(isValidPoint(point1input.value()) && isValidPoint(point2input.value()) && (point1input.value() != point1text || point2input.value() != point2text || range_input.value() != range_inputtext || func_input.value() != func_inputtext || param_input.value() != param_inputtext || numLines_input.value() != numLines_inputtext)) {
 	  update();
   }
@@ -60,11 +69,12 @@ function textDisplay()
     text('tmin,tmax:',range_input.x - 10,range_input.y - adjust);
 	text('Test Function:',func_input.x - 10, func_input.y - adjust);
 	text('# of Lines:',numLines_input.x - 10,numLines_input.y - adjust)
-	text('L:',param_input.x - 10, param_input.y - adjust)
+	text('Vars:',param_input.x - 10, param_input.y - adjust)
 }
 
 function update()
-{
+{	
+	console.log("Updating")
 	background(200,200,200);
 	textDisplay();
 	push();
@@ -78,32 +88,42 @@ function update()
 	var prevx1, prevy1, prevx2, prevy2;
 	var prevxi, prevyi;
 	var minx, maxx, miny, maxy;
-	var L = 1
+	/*
 	if(isValidExpression(param_inputtext))
 	{
 		try{
 			L = eval(param_inputtext)
 		} catch(error){}
 	}
+	*/
 	translate(250,250);
 	if(isValidPoint(range_inputtext))
-	{		
-		var tmin = eval(range_inputtext.split(',')[0]);
-		var tmax = eval(range_inputtext.split(',')[1]);
+	{
+		try {	
+			var tmin = eval(evaluate(range_inputtext.split(',')[0]));
+			var tmax = eval(evaluate(range_inputtext.split(',')[1]));
+		}
+		catch(error){
+			var tmin = 0;
+			var tmax = 1;
+			console.log("Invalid range");
+		}
 	}
 	else
 	{
 		var tmin = 0;
 		var tmax = 1;
+		console.log("Invalid points");
 	}
 	var numLines = 50;
 	if(isValidExpression(numLines_inputtext))
 	{
 		try	{
-			numLines = eval(numLines_inputtext)
+			numLines = eval(evaluate(numLines_inputtext))
 		}
 		catch(error){}
 	}
+	else console.log("Invalid numLines");
 	if(numLines != 1)
 	{
 		var dt = (tmax - tmin)/(numLines-1);
@@ -124,10 +144,10 @@ function update()
 	while (t < tmax + dt/2)
 	{
 		try {
-			var currx1 = eval(point1[0]);
-			var curry1 = eval(point1[1]);
-			var currx2 = eval(point2[0]);
-			var curry2 = eval(point2[1]);
+			var currx1 = eval(evaluate(point1[0]));
+			var curry1 = eval(evaluate(point1[1]));
+			var currx2 = eval(evaluate(point2[0]));
+			var curry2 = eval(evaluate(point2[1]));
 			if (minx === null || currx1 < minx)
 				minx = currx1
 			if (maxx === null || currx1 > maxx)
@@ -180,7 +200,7 @@ function update()
 		try {
 			strokeWeight(1)
 			stroke('black')
-			line(eval(point1[0])*scal,eval("-1 * (" + point1[1] + ")")*scal,eval(point2[0])*scal,eval("-1 * (" + point2[1] + ")")*scal);
+			line(eval(evaluate(point1[0]))*scal,eval(evaluate("-1 * (" + point1[1] + ")"))*scal,eval(evaluate(point2[0]))*scal,eval(evaluate("-1 * (" + point2[1] + ")"))*scal);
 		} catch(error) {
 		}
 		t += dt;
@@ -193,10 +213,10 @@ function update()
 	while (t < tmax + dt/2)
 	{
 		try {
-			var currx1 = eval(point1[0])*scal;
-			var curry1 = eval(point1[1])*scal;
-			var currx2 = eval(point2[0])*scal;
-			var curry2 = eval(point2[1])*scal;
+			var currx1 = eval(evaluate(point1[0]))*scal;
+			var curry1 = eval(evaluate(point1[1]))*scal;
+			var currx2 = eval(evaluate(point2[0]))*scal;
+			var curry2 = eval(evaluate(point2[1]))*scal;
 			if (!(prevx1 === null))
 			{
 				var intersect = intersection(currx1,curry1,currx2,curry2,prevx1,prevy1,prevx2,prevy2)
@@ -239,7 +259,7 @@ function update()
 		while(t < tmax + dt/2)
 		{
 			try {
-				curry1 = eval(func_inputtext)*scal;
+				curry1 = eval(evaluate(func_inputtext))*scal;
 				currx1 = t*scal;
 				if (!(prevx1 === null))
 				{
@@ -252,7 +272,7 @@ function update()
 			
 		}
 	}
-	
+	else print("Invalid function")
 	pop();
 	
 }
@@ -281,8 +301,9 @@ function intersection(x1, y1, x2, y2, x3, y3, x4, y4)
 	}
 }
 
-function isValidPoint(point) {
-	exprArr = point.split(',');
+function isValidPoint(point)
+{
+	exprArr = point.split(',');	
 	if(exprArr.length != 2)
 	{
 		return false;
@@ -293,6 +314,23 @@ function isValidPoint(point) {
 	}
 }
 
-function isValidExpression(expr) {
+function isValidExpression(expr)
+{
+	for(i = 0; i < expressions.length; i++)
+	{
+		regex = new RegExp(expressions[i][0],"g");
+		expr = expr.replace(regex, expressions[i][1]);
+		
+	}
 	return (!(/[a-z]/i.test(expr.replace(/sqrt/g,'1').replace(/t/g,'1').replace(/L/g,'1').replace(/x/g,'1').replace(',','a'))) && expr.length > 0);
+}
+
+function evaluate(expr)
+{
+	for(i = 0; i < expressions.length; i++)
+	{
+		regex = new RegExp(expressions[i][0],"g")
+		expr = expr.replace(regex, expressions[i][1])
+	}
+	return expr;
 }
