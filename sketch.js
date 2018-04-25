@@ -1,3 +1,4 @@
+//Global variable declarations
 var point1input;
 var point2input;	
 var point1text = "";
@@ -13,7 +14,13 @@ var numLines_inputtext = "";
 var adjust = 3
 var expressions = [];
 
-function setup() {
+
+function setup()
+{
+  /*
+	This function is called at initialization by the p5 library.
+	Creates canvas for display, text boxes, and text box labels.
+  */
   var canvas = createCanvas(500,600);
   canvas.style('display','block');
   canvas.parent("sketchHolder");
@@ -47,8 +54,12 @@ function setup() {
   textDisplay();
 }
 
-function draw() {
-  //check if text is new and valid
+function draw()
+{
+  /*
+	This function is called automatically regularly by the p5 library.
+	Processes the current variable input and checks if there is a valid reason and way to update the display.
+  */
   if(param_inputtext != param_input.value())
   {
 	  expressions = param_input.value().split(',');
@@ -64,6 +75,9 @@ function draw() {
 
 function textDisplay()
 {
+	/*
+	  Displays the labels for all of the text boxes.
+	*/
     text('x1,y1:',point1input.x - 10,point1input.y - adjust);
     text('x2,y2:',point2input.x - 10,point2input.y - adjust);
     text('tmin,tmax:',range_input.x - 10,range_input.y - adjust);
@@ -74,7 +88,9 @@ function textDisplay()
 
 function update()
 {	
-	console.log("Updating")
+	/*
+	  Tries to create a new drawing with the given inputs, reverting to default values in the absence of meaningful input.
+	*/
 	background(200,200,200);
 	textDisplay();
 	push();
@@ -88,15 +104,9 @@ function update()
 	var prevx1, prevy1, prevx2, prevy2;
 	var prevxi, prevyi;
 	var minx, maxx, miny, maxy;
-	/*
-	if(isValidExpression(param_inputtext))
-	{
-		try{
-			L = eval(param_inputtext)
-		} catch(error){}
-	}
-	*/
 	translate(250,250);
+	
+	//Processing t-min, t-max input
 	if(isValidPoint(range_inputtext))
 	{
 		try {	
@@ -106,15 +116,15 @@ function update()
 		catch(error){
 			var tmin = 0;
 			var tmax = 1;
-			console.log("Invalid range");
 		}
 	}
 	else
 	{
 		var tmin = 0;
 		var tmax = 1;
-		console.log("Invalid points");
 	}
+	
+	//Processing number of lines input
 	var numLines = 50;
 	if(isValidExpression(numLines_inputtext))
 	{
@@ -123,7 +133,6 @@ function update()
 		}
 		catch(error){}
 	}
-	else console.log("Invalid numLines");
 	if(numLines != 1)
 	{
 		var dt = (tmax - tmin)/(numLines-1);
@@ -132,11 +141,13 @@ function update()
 	{
 		var dt = (tmax - tmin) * 2
 	}
+	
+	//Setting up for line-drawing iteration
 	var t = tmin;
 	prevx1 = null
 	prevxi = null
 	
-	//autoscale
+	//Autoscale setup
 	var minx = null
 	var maxx = null
 	var miny = null
@@ -193,8 +204,8 @@ function update()
 		scale(ysize/400)
 	}
 	t = tmin
-	//black line
 	
+	//Drawing black lines iteratively
 	while (t < tmax + dt/2)
 	{
 		try {
@@ -206,7 +217,7 @@ function update()
 		t += dt;
 	}
 	
-	//red line
+	//Approximating envelope via red line iteratively
 	t = tmin
 	strokeWeight(2)
 	stroke('red')
@@ -233,7 +244,6 @@ function update()
 				var yi = intersect[1]
 				if (!(prevxi === null))
 				{
-					//console.log(prevxi + " " + prevyi + " " + xi + " " + yi)
 					line(prevxi,-1*prevyi,xi,-1*yi)
 				}
 			}
@@ -247,8 +257,8 @@ function update()
 		t += dt;
 	}
 	
+	//Processing defined function (green line)
 	dt = (tmax - tmin)/100
-	
 	func_inputtext = func_input.value().replace(/x/g,'t')
 	if(isValidExpression(func_inputtext))
 	{
@@ -272,13 +282,15 @@ function update()
 			
 		}
 	}
-	else print("Invalid function")
-	pop();
 	
+	pop();
 }
 
 function intersection(x1, y1, x2, y2, x3, y3, x4, y4)
 {
+	/*
+	  Returns the intersection point of two lines as defined by their endpoints.
+	*/
 	var xi = 0;
 	var yi = 0;
 	try
@@ -303,6 +315,9 @@ function intersection(x1, y1, x2, y2, x3, y3, x4, y4)
 
 function isValidPoint(point)
 {
+	/*
+	  Checks if a given input is a two-piece input with valid expressions on either side
+	*/
 	exprArr = point.split(',');	
 	if(exprArr.length != 2)
 	{
@@ -316,17 +331,23 @@ function isValidPoint(point)
 
 function isValidExpression(expr)
 {
+	/*
+	  Checks if a given expression is valid in the given context.
+	  This function is intended to protect against code injection due to the inherent open-endedness of using JavaScript's eval() function.
+	*/
 	for(i = 0; i < expressions.length; i++)
 	{
 		regex = new RegExp(expressions[i][0],"g");
 		expr = expr.replace(regex, expressions[i][1]);
-		
 	}
 	return (!(/[a-z]/i.test(expr.replace(/sqrt/g,'1').replace(/t/g,'1').replace(/L/g,'1').replace(/x/g,'1').replace(',','a'))) && expr.length > 0);
 }
 
 function evaluate(expr)
 {
+	/*
+	  Uses the current list of variables to convert a given string into something that can be evaluated by the program.
+	*/
 	for(i = 0; i < expressions.length; i++)
 	{
 		regex = new RegExp(expressions[i][0],"g")
