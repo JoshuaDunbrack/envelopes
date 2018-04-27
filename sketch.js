@@ -133,7 +133,7 @@ function update()
 		}
 		catch(error){}
 	}
-	if(numLines != 1)
+	if(Number.isInteger(numLines) && numLines > 1)
 	{
 		var dt = (tmax - tmin)/(numLines-1);
 	}
