@@ -371,6 +371,12 @@ function isValidExpression(expr)
 		regex = new RegExp(expressions[i][0],"g");
 		expr = expr.replace(regex, expressions[i][1]);
 	}
+	//Ensures that functions can be used within variable declarations and still be read as valid
+	for(i = 0; i < funcs.length; i++)
+	{
+		regex = new RegExp(funcs[i], "g");
+		expr = expr.replace(regex, "1");
+	}
 	//Ensures that the expression being evaluated has no remaining letters and no commas
 	return (!(/[a-z]/i.test(expr.replace(/e/g, '1').replace(/pi/g, '1').replace(/t/g,'1').replace(/L/g,'1').replace(/x/g,'1').replace(',','a'))) && expr.length > 0);
 }
