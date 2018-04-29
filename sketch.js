@@ -14,6 +14,29 @@ var numLines_inputtext = "";
 var adjust = 3
 var expressions = [];
 
+//Predefined variables
+var pi = Math.PI;
+var e = Math.E
+
+//Functions that are implemented in the code, exempt from being overwritten by variable names
+var funcs = ["sin", "sqrt", "cos", "ln"]
+
+//Functions from the math library defined in more convenient terms for a better user experience
+function sin(x)
+{
+	return Math.sin(x);
+}
+
+function cos(x)
+{
+	return Math.cos(x);
+}
+
+function ln(x)
+{
+	return Math.log(x);
+}
+
 
 function setup()
 {
@@ -179,6 +202,7 @@ function update()
 		catch(error){}
 		t += dt
 	}
+	
 	//Optimal scale: minx to -200,maxx to 200, miny to -200, maxy to 200
 	stroke('black')
 	var xsize = maxx - minx
@@ -335,12 +359,20 @@ function isValidExpression(expr)
 	  Checks if a given expression is valid in the given context.
 	  This function is intended to protect against code injection due to the inherent open-endedness of using JavaScript's eval() function.
 	*/
+	//Ensures that functions are read as valid
+	for(i = 0; i < funcs.length; i++)
+	{
+		regex = new RegExp(funcs[i], "g");
+		expr = expr.replace(regex, "1");
+	}
+	//Ensures that user-defined variables are read as valid (assuming their values are valid)
 	for(i = 0; i < expressions.length; i++)
 	{
 		regex = new RegExp(expressions[i][0],"g");
 		expr = expr.replace(regex, expressions[i][1]);
 	}
-	return (!(/[a-z]/i.test(expr.replace(/sqrt/g,'1').replace(/t/g,'1').replace(/L/g,'1').replace(/x/g,'1').replace(',','a'))) && expr.length > 0);
+	//Ensures that the expression being evaluated has no remaining letters and no commas
+	return (!(/[a-z]/i.test(expr.replace(/e/g, '1').replace(/pi/g, '1').replace(/t/g,'1').replace(/L/g,'1').replace(/x/g,'1').replace(',','a'))) && expr.length > 0);
 }
 
 function evaluate(expr)
@@ -348,10 +380,24 @@ function evaluate(expr)
 	/*
 	  Uses the current list of variables to convert a given string into something that can be evaluated by the program.
 	*/
+	
+	//Converts exempt functions to ASCII characters to prevent from being overwritten by variables
+	for(i=0;i<funcs.length;i++)
+	{
+		regex = new RegExp(funcs[i], "g");
+		expr = expr.replace(regex, String.fromCharCode(200+i));
+	}
+	//Replaces user-defined variables with their given values
 	for(i = 0; i < expressions.length; i++)
 	{
-		regex = new RegExp(expressions[i][0],"g")
-		expr = expr.replace(regex, expressions[i][1])
+		regex = new RegExp(expressions[i][0],"g");
+		expr = expr.replace(regex, expressions[i][1]);
+	}
+	//Decodes the ASCII characters back to their function definitions
+	for(i=0;i<funcs.length;i++)
+	{
+		regex = new RegExp(String.fromCharCode(200+i), "g");
+		expr = expr.replace(regex, funcs[i]);
 	}
 	return expr;
 }
